@@ -132,7 +132,18 @@ resource "aws_security_group" "anvil_data_sg" {
     description = "Allow all TCP traffic from specified sources"
   }
 
-  # Rule 3: Allow all UDP traffic
+  # Rule 3: Allows traffic from the NLB in the public subnet
+  
+  ingress {
+    description = "Allow inbound from NLB for HA Floating IP"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    # Only allow traffic from the public subnet where the NLB resides
+    cidr_blocks = local.create_ha_anvils && var.assign_public_ip && var.public_subnet_id != null ? [data.aws_subnet.public[0].cidr_block] : []
+  }
+  
+  # Rule 4: Allow all UDP traffic
   
   ingress {
     protocol    = "udp"
@@ -289,14 +300,16 @@ resource "aws_network_interface" "anvil1_ha_ni" {
 }
 
 resource "aws_eip" "anvil1_ha" {
-  count  = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+#  count  = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+  count  = 0
   domain = "vpc"
   tags   = merge(local.common_tags,
     { Name = "${var.common_config.project_name}-Anvil1-EIP" })
 }
 
 resource "aws_eip_association" "anvil1_ha" {
-  count                = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+#  count                = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+  count                = 0
   network_interface_id = aws_network_interface.anvil1_ha_ni[0].id
   allocation_id        = aws_eip.anvil1_ha[0].id
 }
@@ -380,14 +393,16 @@ resource "aws_network_interface" "anvil2_ha_ni" {
 }
 
 resource "aws_eip" "anvil2_ha" {
-  count  = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+#  count  = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+  count  = 0
   domain = "vpc"
   tags   = merge(local.common_tags,
     { Name = "${var.common_config.project_name}-Anvil2-EIP" })
 }
 
 resource "aws_eip_association" "anvil2_ha" {
-  count                = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+#  count                = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+  count                = 0
   network_interface_id = aws_network_interface.anvil2_ha_ni[0].id
   allocation_id        = aws_eip.anvil2_ha[0].id
 }
@@ -557,4 +572,83 @@ resource "aws_instance" "dsx" {
   depends_on = [
     aws_iam_instance_profile.profile
   ]
+}
+
+# -----------------------------------------------------------------------------
+# Anvil HA Network Load Balancer (Conditional)
+# These resources are only created if deploying an HA pair with a public IP.
+# -----------------------------------------------------------------------------
+
+# Data source to get the CIDR block of the public subnet for the security group rule.
+
+data "aws_subnet" "public" {
+  count = local.create_ha_anvils && var.assign_public_ip && var.public_subnet_id != null ? 1 : 0
+  id    = var.public_subnet_id
+}
+
+# Create the Network Load Balancer in the public subnet
+
+resource "aws_lb" "anvil_ha" {
+  count = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+
+  name               = "${var.common_config.project_name}-anvil-nlb"
+  internal           = false
+  load_balancer_type = "network"
+  subnets            = [var.public_subnet_id]
+
+  enable_cross_zone_load_balancing = true
+
+  tags = merge(local.common_tags, {
+    Name = "${var.common_config.project_name}-anvil-nlb"
+  })
+}
+
+# Create the Target Group to point to the private floating IP
+
+resource "aws_lb_target_group" "anvil_ha" {
+  count = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+
+  name        = "${var.common_config.project_name}-anvil-floating-ip-tg"
+  port        = 443 # Default HTTPS port for the Anvil management UI
+  protocol    = "TCP"
+  target_type = "ip"
+  vpc_id      = var.common_config.vpc_id
+
+  health_check {
+    protocol = "TCP"
+    port     = "traffic-port"
+  }
+
+  tags = merge(local.common_tags, {
+    Name = "${var.common_config.project_name}-anvil-floating-ip-tg"
+  })
+}
+
+# Create the Listener to forward traffic
+
+resource "aws_lb_listener" "anvil_ha_https" {
+  count = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
+
+  load_balancer_arn = aws_lb.anvil_ha[0].arn
+  port              = "443"
+  protocol          = "TCP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.anvil_ha[0].arn
+  }
+}
+
+# Attach the private floating IP address to the target group
+
+resource "aws_lb_target_group_attachment" "anvil_ha_floating_ip" {
+  # Only create this if the floating IP has been determined
+  count = local.create_ha_anvils && var.assign_public_ip && local.anvil2_ha_ni_secondary_ip != null ? 1 : 0
+
+  target_group_arn = aws_lb_target_group.anvil_ha[0].arn
+  target_id        = local.anvil2_ha_ni_secondary_ip
+  port             = 443
+
+  # Ensure the target group exists before trying to attach to it
+  depends_on = [aws_lb_target_group.anvil_ha]
 }

@@ -125,3 +125,10 @@ output "anvil_ha_node2_userdata_rendered" {
   value       = jsonencode(merge(local.anvil_ha_config_map, { "node_index" = "1" }))
   sensitive   = true
 }
+
+# modules/hammerspace/hammerspace_outputs.tf
+
+output "anvil_ha_load_balancer_dns_name" {
+  description = "The public DNS name of the Network Load Balancer for the Anvil HA pair."
+  value       = local.create_ha_anvils && var.assign_public_ip ? one(aws_lb.anvil_ha[*].dns_name) : "N/A - Not created."
+}
