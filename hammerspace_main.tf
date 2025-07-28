@@ -643,7 +643,7 @@ resource "aws_lb_listener" "anvil_ha_https" {
 
 resource "aws_lb_target_group_attachment" "anvil_ha_floating_ip" {
   # Only create this if the floating IP has been determined
-  count = local.create_ha_anvils && var.assign_public_ip && local.anvil2_ha_ni_secondary_ip != null ? 1 : 0
+  count = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
 
   target_group_arn = aws_lb_target_group.anvil_ha[0].arn
   target_id        = local.anvil2_ha_ni_secondary_ip
