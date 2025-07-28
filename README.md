@@ -1,4 +1,4 @@
-# terraform-aws-ecgroups
+# terraform-aws-hammerspace
 This is a Terraform module and cannot stand on its own. It is meant to be included into a project as a module or to be uploaded to the Terraform Public Repository.
 
 This module allows you to deploy either a standalone or HA Anvil plus zero or more DSX nodes.
