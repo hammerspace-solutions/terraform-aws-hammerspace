@@ -292,7 +292,7 @@ resource "aws_volume_attachment" "anvil_meta_vol_attach" {
 
 resource "aws_network_interface" "anvil1_ha_ni" {
   count           = local.create_ha_anvils ? 1 : 0
-  subnet_id       = var.assign_public_ip && var.public_subnet_id != null ? var.public_subnet_id : var.common_config.subnet_id
+  subnet_id       = var.common_config.subnet_id
   security_groups = local.effective_anvil_sg_id != null ? [local.effective_anvil_sg_id] : []
   tags            = merge(local.common_tags,
     { Name = "${var.common_config.project_name}-Anvil1-NI" })
@@ -384,7 +384,7 @@ resource "aws_volume_attachment" "anvil1_meta_vol_attach" {
 
 resource "aws_network_interface" "anvil2_ha_ni" {
   count             = local.create_ha_anvils ? 1 : 0
-  subnet_id         = var.assign_public_ip && var.public_subnet_id != null ? var.public_subnet_id : var.common_config.subnet_id
+  subnet_id         = var.common_config.subnet_id
   security_groups   = local.effective_anvil_sg_id != null ? [local.effective_anvil_sg_id] : []
   private_ips_count = 1
   tags              = merge(local.common_tags,
@@ -643,7 +643,7 @@ resource "aws_lb_listener" "anvil_ha_https" {
 
 resource "aws_lb_target_group_attachment" "anvil_ha_floating_ip" {
   # Only create this if the floating IP has been determined
-  count = local.create_ha_anvils && var.assign_public_ip && local.anvil2_ha_ni_secondary_ip != null ? 1 : 0
+  count = local.create_ha_anvils && var.assign_public_ip ? 1 : 0
 
   target_group_arn = aws_lb_target_group.anvil_ha[0].arn
   target_id        = local.anvil2_ha_ni_secondary_ip
