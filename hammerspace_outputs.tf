@@ -35,7 +35,7 @@ output "management_url" {
 
 output "anvil_instances" {
   description = "Details of deployed Anvil instances."
-  sensitive   = false
+  sensitive   = true
   value = local.create_standalone_anvil && length(aws_instance.anvil) > 0 ? [
     {
       type                       = "standalone"
@@ -86,7 +86,7 @@ output "dsx_instances" {
       id              = inst.id
       arn	      = inst.arn
       private_ip      = inst.private_ip
-      public_ip       = var.assign_public_ip ? inst.public_ip : null
+      public_ip       = inst.public_ip
       key_name        = inst.key_name
       iam_profile     = inst.iam_instance_profile
       placement_group = inst.placement_group

@@ -114,7 +114,8 @@ locals {
   management_ip_for_url = coalesce(
     # First priority: The floating IP for an HA pair
 
-    local.anvil2_ha_ni_secondary_ip,
+    # local.anvil2_ha_ni_secondary_ip,
+    output.anvil_ha_load_balancer_dns_name,
 
     # Second priority: The IP for a standalone anvil. This checks
     # if a public IP should be used.
