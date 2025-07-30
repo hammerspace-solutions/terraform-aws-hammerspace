@@ -34,6 +34,7 @@ output "management_url" {
     local.create_ha_anvils && var.assign_public_ip && length(aws_lb.anvil_ha) > 0 ?
     "https://${one(aws_lb.anvil_ha[*].dns_name)}" :
     local.management_ip_for_url != "N/A - Anvil instance details not available." ? "https://${local.management_ip_for_url}" : "N/A"
+  )
 }
 
 output "anvil_instances" {
