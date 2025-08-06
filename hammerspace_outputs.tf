@@ -37,6 +37,34 @@ output "management_url" {
   )
 }
 
+# The following is ONLY used for Ansible. It will be marked sensitive so that it
+# is not output
+
+output "anvil_ansible_info" {
+  description = "A list of sensitive details for Anvil instances"
+  sensitive   = true
+  value = local.create_standalone_anvil && length(aws_instance.anvil) > 0 ? [
+    {
+      id                         = one(aws_instance.anvil[*].id)
+      private_ip                 = one(aws_instance.anvil[*].private_ip)
+      type                       = "anvil"
+    }
+  ] : (local.create_ha_anvils ? [
+    { # Anvil1
+      id                         = one(aws_instance.anvil1[*].id)
+      private_ip                 = one(aws_instance.anvil1[*].private_ip)
+      type                       = "anvil"
+    },
+    { # Anvil2
+      id                         = one(aws_instance.anvil2[*].id)
+      private_ip                 = one(aws_instance.anvil2[*].private_ip)
+      type                       = "anvil"
+    }
+  ] : [])
+}
+  
+# Standard sensitive info for output
+
 output "anvil_instances" {
   description = "Details of deployed Anvil instances."
   sensitive   = true
@@ -80,6 +108,23 @@ output "anvil_instances" {
     }
   ] : [])
 }
+
+# The following is ONLY used for Ansible. It will be marked sensitive so that it
+# is not output
+
+output "dsx_ansible_info" {
+  description = "Details of deployed DSX instances."
+  sensitive   = true
+  value = [
+    for i, inst in aws_instance.dsx : {
+      id              = inst.id
+      private_ip      = inst.private_ip
+      type	      = "dsx"
+    }
+  ]
+}
+
+# Common info for DSX output
 
 output "dsx_instances" {
   description = "Details of deployed DSX instances."
