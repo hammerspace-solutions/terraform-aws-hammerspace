@@ -91,17 +91,23 @@ locals {
 
   # --- IAM References ---
 
-  effective_iam_admin_group_name = local.create_iam_admin_group ?
-    one(aws_iam_group.admin_group[*].name) :
-    var.common_config.iam_profile_group
-  effective_iam_admin_group_arn  = local.create_iam_admin_group ?
-    one(aws_iam_group.admin_group[*].arn) :
-    (var.common_config.iam_profile_group != "" ?
-      "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:group/${var.common_config.iam_profile_group}" :
-      null)
-  effective_instance_profile_ref = local.create_profile ?
-    one(aws_iam_instance_profile.profile[*].name) :
-    var.common_config.iam_profile_name
+  effective_iam_admin_group_name = (
+    local.create_iam_admin_group
+    ? one(aws_iam_group.admin_group[*].name)
+    : var.common_config.iam_profile_group
+  )
+  effective_iam_admin_group_arn = (
+    local.create_iam_admin_group
+    ? one(aws_iam_group.admin_group[*].arn)
+    : (var.common_config.iam_profile_group != ""
+      ? "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:group/${var.common_config.iam_profile_group}"
+      : null)
+  )
+  effective_instance_profile_ref = (
+    local.create_profile
+    ? one(aws_iam_instance_profile.profile[*].name)
+    : var.common_config.iam_profile_name
+  )
 
   # --- Security Group Selection Logic ---
 
