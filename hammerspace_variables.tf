@@ -37,6 +37,8 @@ variable "common_config" {
     allow_root		 = bool
     placement_group_name = string
     allowed_source_cidr_blocks = list(string)
+    iam_profile_name     = string
+    iam_profile_group	 = string
   })
 }
 
@@ -71,12 +73,6 @@ variable "ami" {
   type        = string
 }
 
-variable "iam_admin_group_id" {
-  description = "Name of an existing IAM Admin Group (optional). If blank and iam_user_access is enabled, a new group is created."
-  type        = string
-  default     = ""
-}
-
 variable "iam_user_access" {
   description = "Enable admin access for users in the specified IAM group ('Enable' or 'Disable')."
   type        = string
@@ -85,12 +81,6 @@ variable "iam_user_access" {
     condition     = contains(["Enable", "Disable"], var.iam_user_access)
     error_message = "Allowed values for iam_user_access are 'Enable' or 'Disable'."
   }
-}
-
-variable "profile_id" {
-  description = "Existing Instance Profile Name or ARN (optional). If blank, new IAM resources are created."
-  type        = string
-  default     = ""
 }
 
 variable "anvil_security_group_id" {

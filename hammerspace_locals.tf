@@ -72,8 +72,8 @@ locals {
 
   provides_key_name      = var.common_config.key_name != null && var.common_config.key_name != ""
   enable_iam_admin_group = var.iam_user_access == "Enable"
-  create_iam_admin_group = local.enable_iam_admin_group && var.iam_admin_group_id == ""
-  create_profile         = var.profile_id == ""
+  create_iam_admin_group = local.enable_iam_admin_group && var.common_config.iam_profile_group == ""
+  create_profile         = var.common_config.iam_profile_name == ""
   dsx_add_volumes_bool   = local.should_create_any_anvils && var.dsx_add_vols
 
   # --- Mappings & Derived Values ---
@@ -91,9 +91,17 @@ locals {
 
   # --- IAM References ---
 
-  effective_iam_admin_group_name = local.create_iam_admin_group ? one(aws_iam_group.admin_group[*].name) : var.iam_admin_group_id
-  effective_iam_admin_group_arn  = local.create_iam_admin_group ? one(aws_iam_group.admin_group[*].arn) : (var.iam_admin_group_id != "" ? "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:group/${var.iam_admin_group_id}" : null)
-  effective_instance_profile_ref = local.create_profile ? one(aws_iam_instance_profile.profile[*].name) : var.profile_id
+  effective_iam_admin_group_name = local.create_iam_admin_group ?
+    one(aws_iam_group.admin_group[*].name) :
+    var.common_config.iam_profile_group
+  effective_iam_admin_group_arn  = local.create_iam_admin_group ?
+    one(aws_iam_group.admin_group[*].arn) :
+    (var.common_config.iam_profile_group != "" ?
+      "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:group/${var.common_config.iam_profile_group}" :
+      null)
+  effective_instance_profile_ref = local.create_profile ?
+    one(aws_iam_instance_profile.profile[*].name) :
+    var.common_config.iam_profile_name
 
   # --- Security Group Selection Logic ---
 
