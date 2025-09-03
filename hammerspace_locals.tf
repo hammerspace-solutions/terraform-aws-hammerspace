@@ -72,8 +72,9 @@ locals {
 
   provides_key_name      = var.common_config.key_name != null && var.common_config.key_name != ""
   enable_iam_admin_group = var.iam_user_access == "Enable"
-  create_iam_admin_group = local.enable_iam_admin_group && var.common_config.iam_profile_group == ""
-  create_profile         = var.common_config.iam_profile_name == ""
+  create_iam_admin_group = local.enable_iam_admin_group && (
+    var.common_config.iam_profile_group || var.common_config.iam_profile_group == "")
+  create_profile         = var.common_config.iam_profile_name || var.common_config.iam_profile_name == ""
   dsx_add_volumes_bool   = local.should_create_any_anvils && var.dsx_add_vols
 
   # --- Mappings & Derived Values ---
