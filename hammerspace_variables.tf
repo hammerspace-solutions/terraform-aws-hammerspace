@@ -48,8 +48,8 @@ variable "iam_profile_name" {
 
 variable "iam_profile_group" {
   description = "The IAM group name"
-  type	      = string
-  default     = null
+  type       = string
+  default     = ""
 }
 
 variable "assign_public_ip" {
