@@ -100,7 +100,7 @@ locals {
   effective_iam_admin_group_arn = (
     local.create_iam_admin_group
     ? one(aws_iam_group.admin_group[*].arn)
-    : (var.iam_profile_group != ""
+    : ((var.iam_profile_group != "" || var.iam_profile_group != null)
       ? "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:group/${var.iam_profile_group}"
       : null)
   )
