@@ -28,7 +28,11 @@
 
 resource "aws_iam_group" "admin_group" {
   count = local.create_iam_admin_group ? 1 : 0
-  name  = var.iam_admin_group_id != "" ? var.iam_admin_group_id : "${var.common_config.project_name}-AnvilAdminGroup"
+  name  = (
+    var.iam_profile_group != ""
+      ? var.iam_profile_group
+      : "${var.common_config.project_name}-AnvilAdminGroup"
+  )
   path  = "/users/"
 }
 
