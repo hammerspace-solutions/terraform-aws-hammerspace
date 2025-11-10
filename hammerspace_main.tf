@@ -114,6 +114,7 @@ resource "aws_security_group" "anvil_data_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+    description = "Egress from Anvil for ANY protocol"
     cidr_blocks = [var.sec_ip_cidr]
   }
 
@@ -123,6 +124,7 @@ resource "aws_security_group" "anvil_data_sg" {
     protocol    = "icmp"
     from_port   = -1
     to_port     = -1
+    description = "Ingress to Anvil for ICMP protocol"
     cidr_blocks = var.common_config.allowed_source_cidr_blocks
   }
 
@@ -153,6 +155,7 @@ resource "aws_security_group" "anvil_data_sg" {
     protocol    = "udp"
     from_port   = 0
     to_port     = 65535
+    description = "Ingress to Anvil for UCP protocol for all ports"
     cidr_blocks = var.common_config.allowed_source_cidr_blocks
   }
 }
@@ -169,6 +172,7 @@ resource "aws_security_group" "dsx_sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
+    description = "Egress from DSX for all protocols and ports"
     cidr_blocks = [var.sec_ip_cidr]
   }
 
@@ -178,6 +182,7 @@ resource "aws_security_group" "dsx_sg" {
     protocol    = "icmp"
     from_port   = -1
     to_port     = -1
+    description = "Ingress to DSX for ICMP"
     cidr_blocks = var.common_config.allowed_source_cidr_blocks
   }
 
@@ -187,8 +192,8 @@ resource "aws_security_group" "dsx_sg" {
     protocol    = "tcp"
     from_port   = 0
     to_port     = 65535
-    cidr_blocks = var.common_config.allowed_source_cidr_blocks
     description = "Allow all TCP traffic from specified sources"
+    cidr_blocks = var.common_config.allowed_source_cidr_blocks
   }
 
   # Rule 3: Allow all UDP traffic
@@ -197,6 +202,7 @@ resource "aws_security_group" "dsx_sg" {
     protocol    = "udp"
     from_port   = 0
     to_port     = 65535
+    description = "Allow all UDP traffic from specified sources"
     cidr_blocks = var.common_config.allowed_source_cidr_blocks
   }
 }
