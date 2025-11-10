@@ -34,7 +34,6 @@ variable "common_config" {
     tags                 = map(string)
     project_name         = string
     ssh_keys_dir         = string
-    allow_root		 = bool
     placement_group_name = string
     allowed_source_cidr_blocks = list(string)
   })
