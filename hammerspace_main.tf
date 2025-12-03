@@ -270,8 +270,8 @@ resource "aws_instance" "anvil" {
       condition	    = local.anvil_instance_type_is_available
       error_message = (
         var.common_config.availability_zone != null
-	  ? "ERROR: Instance type ${var.instance_type} for Hammerspace is not available in AZ ${var.common_config.availability_zone}."
-	  : "ERROR: Instance type ${var.instance_type} for Hammerspace is not available in the selected Availability Zone (unable to determine AZ; please verify subnet/VPC configuration)."
+	  ? "ERROR: Instance type ${local.anvil_instance_type_actual} for Hammerspace is not available in AZ ${var.common_config.availability_zone}."
+	  : "ERROR: Instance type ${local.anvil_instance_type_actual} for Hammerspace is not available in the selected Availability Zone (unable to determine AZ; please verify subnet/VPC configuration)."
       )
     }
   }
